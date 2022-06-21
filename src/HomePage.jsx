@@ -13,14 +13,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import videos from "./videos";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
 const GOOGLE_CLIENT_ID =
   "1031772883847-nmdk0m6m71un6l3jrf8hig6pkj58f37n.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
 
 function HomePage() {
   const [user, setUser] = React.useState(null);
@@ -35,7 +34,9 @@ function HomePage() {
 
   const onChange = () => {
     let filtered = videos.filter(
-      (v) => JSON.stringify(v.categories) === JSON.stringify(video.categories)
+      (v) =>
+        JSON.stringify(v.categories) === JSON.stringify(video.categories) &&
+        v.title !== video.title
     );
     setRelated(filtered);
     setComments(video.comments);
@@ -56,14 +57,6 @@ function HomePage() {
     return comments.length > 1
       ? setComments([...comments, comment])
       : setComments([comment]);
-  };
-
-  const options = {
-    clientId: GOOGLE_CLIENT_ID,
-    redirectUri: "http://localhost:3000",
-    scopes: ["openid", "profile", "email"],
-    includeGrantedScopes: true,
-    accessType: "offline",
   };
 
   return (
@@ -103,12 +96,13 @@ function HomePage() {
                   )}
                 />
               </Grid>
+              <Divider sx={{ mb: 8 }} />
               {Object.keys(video).length > 0 ? (
                 <Card>
-                  <CardContent>
+                  <CardContent sx={{ bgcolor: "#b2ebf2" }}>
                     <Typography
                       component="h4"
-                      variant="div"
+                      variant="h4"
                       sx={{ fontWeight: 700, fontSize: "2rem" }}
                     >
                       {video.title}
@@ -116,11 +110,43 @@ function HomePage() {
                   </CardContent>
                   <CardMedia component="video" image={video.src} controls />
                   <CardContent>
-                    <Typography gutterBototm color="gray" sx={{ mt: 2, mb: 3 }}>
+                    <Button variant="contained" color="error">
+                      {video.creator}
+                    </Button>
+                    <Typography
+                      gutterBototm
+                      color="gray"
+                      variant="body1"
+                      component="div"
+                      sx={{ mt: 2, mb: 3 }}
+                    >
                       {video.description}
                     </Typography>
+
+                    <Typography
+                      color="black"
+                      variant="body1"
+                      component="div"
+                      sx={{
+                        mt: 2,
+                        mb: 3,
+                        display: "flex",
+                        flexDirection: "row",
+                      }}
+                    >
+                      Tags :{" "}
+                      <Typography color="primary">
+                        {video.categories.map((ct) => `#${ct}`)}
+                      </Typography>
+                    </Typography>
+
                     <Divider />
-                    <Typography gutterBottom sx={{ mt: 2 }}>
+                    <Typography
+                      component="div"
+                      variant="body2"
+                      gutterBottom
+                      sx={{ mt: 2 }}
+                    >
                       You can leave your comment by writing in the box below or
                       you can toggle it off if you wish to not to see the
                       comments!{" "}
@@ -148,7 +174,7 @@ function HomePage() {
                           />
                           <Button
                             type="submit"
-                            variant="outlined"
+                            variant="contained"
                             sx={{
                               ml: 1,
                               alignItems: "center",
@@ -170,15 +196,14 @@ function HomePage() {
                   </CardContent>
                 </Card>
               ) : (
-                <>
-                  <Grid
-                    container
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
+                <Container
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Grid container>
                     {videos.map((v) => (
                       <Grid
                         item
@@ -186,23 +211,34 @@ function HomePage() {
                         md={5}
                         lg={5}
                         xl={5}
-                        xs={2}
+                        xs={10}
                         sx={{ m: 1 }}
                       >
-                        <Card onClick={() => setVideo(v)}>
+                        <Card
+                          onClick={() => setVideo(v)}
+                          sx={{ bgcolor: "#eeeeee" }}
+                        >
                           <CardMedia component="video" image={v.src} />
                           <CardContent>
                             <Typography
-                              component="h5"
-                              variant="div"
+                              component="div"
+                              variant="h4"
                               gutterBottom
-                              sx={{ fontWeight: 700, fontSize: "1.5rem" }}
+                              sx={{ fontWeight: 700, fontSize: "1.75rem" }}
                             >
                               {v.title}
                             </Typography>
                             <Typography
-                              component="body2"
-                              variant="div"
+                              component="div"
+                              variant="body1"
+                              gutterBottom
+                              sx={{ fontWeight: 700, fontSize: "1rem" }}
+                            >
+                              Creator : {v.creator}
+                            </Typography>
+                            <Typography
+                              component="div"
+                              variant="body2"
                               gutterBottom
                               color="gray"
                             >
@@ -213,36 +249,79 @@ function HomePage() {
                       </Grid>
                     ))}
                   </Grid>
-                </>
+                </Container>
               )}
 
-              <Grid
-                container
-                display="flex"
-                sx={{
-                  mt: 3,
-                  mb: 3,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {related ? (
-                  related.map((r) => (
-                    <Grid item sm={5} sx={{ mr: 2.2 }}>
-                      <span onClick={() => setVideo(r)}>
-                        <Card>
-                          <CardMedia component="video" image={r.src} />
-                          <CardContent>
-                            <Typography>{r.title}</Typography>
-                          </CardContent>
-                        </Card>
-                      </span>
-                    </Grid>
-                  ))
-                ) : (
-                  <Typography>Couldn't find any related video</Typography>
-                )}
-              </Grid>
+              {Object.keys(video).length > 0 && related.length > 0 && (
+                <>
+                  <Typography
+                    sx={{
+                      display: "flex",
+                      mt: 4,
+                      fontWeight: "bold",
+                      fontSize: "1.5rem",
+                    }}
+                  >
+                    Related Videos :{" "}
+                  </Typography>
+                  <Grid
+                    container
+                    display="flex"
+                    sx={{
+                      mt: 3,
+                      mb: 3,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {related.map((r) => (
+                      <Grid
+                        item
+                        sm={5}
+                        sx={{ mr: 2.2, display: "flex", flexDirection: "row" }}
+                      >
+                        <span onClick={() => setVideo(r)}>
+                          <Card>
+                            <CardMedia component="video" image={r.src} />
+                            <CardContent>
+                              <Typography
+                                component="h6"
+                                variant="h6"
+                                sx={{ fontWeight: "bold" }}
+                                gutterBottom
+                              >
+                                {r.title}
+                              </Typography>
+                              <Typography component="div" variant="body1">
+                                {r.description.slice(0, 40)}...
+                                <Typography color="blue">
+                                  {" "}
+                                  Watch it now!
+                                </Typography>
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </span>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </>
+              )}
+              {Object.keys(video).length > 0 && related.length === 0 && (
+                <Typography
+                  component="h4"
+                  variant="h4"
+                  sx={{
+                    fontWeight: "bold",
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: 5,
+                    mb: 10,
+                  }}
+                >
+                  Oops! Couldn't find any related video
+                </Typography>
+              )}
             </Container>
           </main>
         ) : (
