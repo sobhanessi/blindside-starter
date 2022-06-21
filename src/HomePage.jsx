@@ -6,6 +6,7 @@ import {
   CardContent,
   CardMedia,
   Container,
+  Divider,
   Grid,
   Stack,
   Switch,
@@ -105,11 +106,21 @@ function HomePage() {
               {Object.keys(video).length > 0 ? (
                 <Card>
                   <CardContent>
-                    <Typography>{video.title}</Typography>
+                    <Typography
+                      component="h4"
+                      variant="div"
+                      sx={{ fontWeight: 700, fontSize: "2rem" }}
+                    >
+                      {video.title}
+                    </Typography>
                   </CardContent>
                   <CardMedia component="video" image={video.src} controls />
                   <CardContent>
-                    <Typography gutterBottom>
+                    <Typography gutterBototm color="gray" sx={{ mt: 2, mb: 3 }}>
+                      {video.description}
+                    </Typography>
+                    <Divider />
+                    <Typography gutterBottom sx={{ mt: 2 }}>
                       You can leave your comment by writing in the box below or
                       you can toggle it off if you wish to not to see the
                       comments!{" "}
@@ -159,15 +170,50 @@ function HomePage() {
                   </CardContent>
                 </Card>
               ) : (
-                <Typography
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  search for a video
-                </Typography>
+                <>
+                  <Grid
+                    container
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {videos.map((v) => (
+                      <Grid
+                        item
+                        sm={5}
+                        md={5}
+                        lg={5}
+                        xl={5}
+                        xs={2}
+                        sx={{ m: 1 }}
+                      >
+                        <Card onClick={() => setVideo(v)}>
+                          <CardMedia component="video" image={v.src} />
+                          <CardContent>
+                            <Typography
+                              component="h5"
+                              variant="div"
+                              gutterBottom
+                              sx={{ fontWeight: 700, fontSize: "1.5rem" }}
+                            >
+                              {v.title}
+                            </Typography>
+                            <Typography
+                              component="body2"
+                              variant="div"
+                              gutterBottom
+                              color="gray"
+                            >
+                              {v.description}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </>
               )}
 
               <Grid
@@ -198,8 +244,6 @@ function HomePage() {
                 )}
               </Grid>
             </Container>
-
-            <div>an overview page for all videos.</div>
           </main>
         ) : (
           <Container>
